@@ -1,6 +1,50 @@
-<!DOCTYPE html>
-  <meta charset="utf-8 />
-    <body>
-    Test
-    </body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="pico.min.css" />
+    <script src="index.js"></script>
+    <title>WoW Translator</title>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Warcraft Translator</h1>
+
+      <input
+        id="fileInput"
+        type="file"
+        accept=".wts"
+        onchange="onFileChange(event)"
+      />
+      <section>
+        <h2>Language</h2>
+        <p class="grid" id="buttons">
+          <button class="contrast" onclick="onSetLang(this)">deDE</button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            esES
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            esMX
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            frFR
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            koKR
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            ruRU
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            zhCN
+          </button>
+          <button class="outline contrast" onclick="onSetLang(this)">
+            zhTW
+          </button>
+        </p>
+      </section>
+      <button onclick="onTranslate()">Translate</button>
+    </main>
+  </body>
 </html>
