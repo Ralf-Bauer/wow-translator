@@ -1,6 +1,39 @@
 var language = "deDE";
 var fileContent = "";
 var fileName = "";
+var translations;
+
+async function getTranslations() {
+  if (translations) {
+    return translations;
+  }
+
+  const response = await fetch("./data/all.csv"),
+    text = await response.text(),
+    lines = text.split("\n"),
+    columns = lines[0].split("|");
+
+  lines.shift();
+
+  translations = new Map();
+
+  lines.forEach((line) => {
+    const lineData = line.split("|"),
+      key = lineData[0],
+      data = {};
+
+    columns.forEach((column, index) => {
+      if (index === 0) return;
+
+      data[column] = lineData[index];
+
+      if (data[column]) data[column].trim();
+    });
+    translations.set(key, data);
+  });
+
+  return translations;
+}
 function onSetLang(sourceButton) {
   const aButtons = document.getElementById("buttons").children;
   language = sourceButton.innerText;
@@ -31,23 +64,6 @@ function onFileChange() {
   reader.readAsText(file);
 }
 
-async function getTranslations() {
-  // Read CSV File for the selected language
-  const response = await fetch("./data/" + language + ".csv");
-  const data = await response.text();
-
-  lines = data.split("\n");
-  lines.shift(); // Remove header line
-
-  const translations = new Map();
-  for (let line of lines) {
-    const [key, value] = line.split("|");
-    if (key && value) {
-      translations.set(key.trim(), value.trim());
-    }
-  }
-  return translations;
-}
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -56,7 +72,11 @@ async function onTranslate() {
   const data = await getTranslations();
   data.forEach((value, key) => {
     const regex = new RegExp(`(?<!\\w)${escapeRegExp(key)}(?!\\w)`, "gi");
-    fileContent = fileContent.replace(regex, value);
+
+    const translation = value[language];
+    if (translation) {
+      fileContent = fileContent.replace(regex, translation);
+    }
   });
 
   const blob = new Blob([fileContent], { type: "text/plain" });
@@ -68,3 +88,5 @@ async function onTranslate() {
   a.click();
   document.body.removeChild(a);
 }
+
+getTranslations();
