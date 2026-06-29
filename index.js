@@ -6,6 +6,10 @@ var table;
 var searchTimer = null;
 var searchInput = document.getElementById("search");
 
+if (window.Worker) {
+  var TranslationWorker = new Worker("worker.js");
+}
+
 async function getTranslations() {
   if (translations) {
     return translations;
@@ -67,29 +71,51 @@ function onFileChange() {
   reader.readAsText(file);
 }
 
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 async function onTranslate() {
-  const data = await getTranslations();
-  data.forEach((value, key) => {
-    const regex = new RegExp(`(?<!\\w)${escapeRegExp(key)}(?!\\w)`, "gi");
-
-    const translation = value[language];
-    if (translation) {
-      fileContent = fileContent.replace(regex, translation);
-    }
+  let data = await getTranslations();
+  data = Array.from(data, (oElement, oIndex) => {
+    oElement[1].enUS = oElement[0];
+    return oElement[1];
   });
 
-  const blob = new Blob([fileContent], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName + "_" + language + ".wts";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  Swal.fire({
+    title: "Translating...",
+    html: `
+        <progress id="progress" max="100" value="0" style="width:100%"></progress>
+        <div id="status">0%</div>
+    `,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false,
+  });
+
+  const progress = document.getElementById("progress"),
+    status = document.getElementById("status");
+
+  TranslationWorker.postMessage({
+    translations: data,
+    wtsFile: fileContent,
+    language: language,
+  });
+  TranslationWorker.onmessage = (oEvent) => {
+    let oData = oEvent.data;
+
+    if (oData.Type === "Closed") {
+      Swal.close();
+      const blob = new Blob([oData.data], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName + "_" + language + ".wts";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    progress.value = oData.data;
+    status.innerText = oData.data + "%";
+  };
 }
 
 function applySearch() {
@@ -125,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       applySearch();
     }
   });
+  document.getElementById("fileInput").value = "";
 });
 
 getTranslations().then((mapData) => {
