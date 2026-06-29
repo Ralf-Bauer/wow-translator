@@ -3,8 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="tabulator.css" />
     <link rel="stylesheet" href="pico.min.css" />
+
+    <script src="tabulator.js"></script>
     <script src="index.js"></script>
+
     <title>WoW Translator</title>
   </head>
   <body>
@@ -43,8 +47,13 @@
             zhTW
           </button>
         </p>
+        <button onclick="onTranslate()">Translate</button>
       </section>
-      <button onclick="onTranslate()">Translate</button>
+      <section>
+        <h2>Data</h2>
+        <input type="search" id="search" name="search" placeholder="Search" />
+        <div id="table"></div>
+      </section>
     </main>
   </body>
 </html>

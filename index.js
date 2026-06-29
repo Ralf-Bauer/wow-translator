@@ -2,6 +2,9 @@ var language = "deDE";
 var fileContent = "";
 var fileName = "";
 var translations;
+var table;
+var searchTimer = null;
+var searchInput = document.getElementById("search");
 
 async function getTranslations() {
   if (translations) {
@@ -89,4 +92,61 @@ async function onTranslate() {
   document.body.removeChild(a);
 }
 
-getTranslations();
+function applySearch() {
+  const searchInput = document.getElementById("search");
+  const value = searchInput.value.trim().toLowerCase();
+  if (value === "") {
+    table.clearFilter(true);
+    return;
+  }
+
+  table.setFilter(function (data) {
+    for (const key in data) {
+      if (data[key] == null) {
+        continue;
+      }
+      if (String(data[key]).toLowerCase().includes(value)) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("search");
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applySearch, 500);
+  });
+
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      clearTimeout(searchTimer);
+      applySearch();
+    }
+  });
+});
+
+getTranslations().then((mapData) => {
+  const data = Array.from(mapData, (oElement, oIndex) => {
+    oElement[1].enUS = oElement[0];
+    return oElement[1];
+  });
+
+  table = new Tabulator("#table", {
+    height: 205,
+    data: data,
+    layout: "fitColumns",
+    columns: [
+      { title: "enUS", field: "enUS" },
+      { title: "deDE", field: "deDE" },
+      { title: "frFR", field: "frFR" },
+      { title: "esES", field: "esES" },
+      { title: "esMX", field: "esMX" },
+      { title: "koKR", field: "koKR" },
+      { title: "ruRU", field: "ruRU" },
+      { title: "zhCN", field: "zhCN" },
+      { title: "zhTW", field: "zhTW" },
+    ],
+  });
+});
